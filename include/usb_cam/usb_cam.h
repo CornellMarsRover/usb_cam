@@ -81,7 +81,7 @@ class UsbCam {
   void shutdown(void);
 
   // grabs a new image from the camera
-  void grab_image(sensor_msgs::Image* image);
+  int grab_image(sensor_msgs::Image* image);
 
   // enables/disable auto focus
   void set_auto_focus(int value);
