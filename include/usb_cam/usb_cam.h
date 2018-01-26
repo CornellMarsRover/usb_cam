@@ -126,7 +126,7 @@ class UsbCam {
   void init_device(int image_width, int image_height, int framerate);
   void close_device(void);
   void open_device(void);
-  void grab_image();
+  int grab_image();
   bool is_capturing_;
 
 
