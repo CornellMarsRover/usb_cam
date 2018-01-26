@@ -1115,10 +1115,10 @@ void UsbCam::shutdown(void)
   image_ = NULL;
 }
 
-void UsbCam::grab_image(sensor_msgs::Image* msg)
+int UsbCam::grab_image(sensor_msgs::Image* msg)
 {
   // grab the image
-  grab_image();
+  int result = grab_image();
   // stamp the image
   msg->header.stamp = ros::Time::now();
   // fill the info
@@ -1132,9 +1132,10 @@ void UsbCam::grab_image(sensor_msgs::Image* msg)
     fillImage(*msg, "rgb8", image_->height, image_->width, 3 * image_->width,
         image_->image);
   }
+  return result;
 }
 
-void UsbCam::grab_image()
+int UsbCam::grab_image()
 {
   fd_set fds;
   struct timeval tv;
@@ -1152,10 +1153,10 @@ void UsbCam::grab_image()
   if (-1 == r)
   {
     if (EINTR == errno)
-      return;
+      return 0;
 
     errno_exit("select");
-    return;
+    return 0;
   }
 
   if (0 == r)
