@@ -1119,6 +1119,8 @@ int UsbCam::grab_image(sensor_msgs::Image* msg)
 {
   // grab the image
   int result = grab_image();
+  printf("grab image result: ");
+  printf(result);
   // stamp the image
   msg->header.stamp = ros::Time::now();
   // fill the info
@@ -1153,9 +1155,11 @@ int UsbCam::grab_image()
   if (-1 == r)
   {
     if (EINTR == errno)
+      printf("errno");
       return 0;
 
     errno_exit("select");
+    printf("select");
     return 0;
   }
 
@@ -1167,7 +1171,8 @@ int UsbCam::grab_image()
 
   read_frame();
   image_->is_new = 1;
-  return 1;
+  printf("done");
+  return 0;
 }
 
 // enables/disables auto focus
