@@ -60,7 +60,7 @@ namespace usb_cam {
 
 static void errno_exit(const char * s)
 {
-  ROS_ERROR("%s error %d, %s", s, errno, strerror(errno));
+  
 }
 
 static int xioctl(int fd, int request, void * arg)
