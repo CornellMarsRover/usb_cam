@@ -1167,6 +1167,7 @@ int UsbCam::grab_image()
 
   read_frame();
   image_->is_new = 1;
+  return 1;
 }
 
 // enables/disables auto focus
