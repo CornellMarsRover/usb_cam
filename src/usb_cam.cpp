@@ -1079,12 +1079,15 @@ bool UsbCam::start(const std::string& dev, io_method io_method,
   }
 
   if(!open_device()){
+    ROS_ERROR("cannot open device");
     return false;
   }
   if(!init_device(image_width, image_height, framerate)){
+    ROS_ERROR("Cannot initialize");
     return false;
   }
   if(!start_capturing()){
+    ROS_ERROR("Cannot capture");
     return false;
   }
 
