@@ -622,7 +622,7 @@ void UsbCam::stop_capturing(void)
   }
 }
 
-bool UsbCam::VIDIOC_STREAMONpturing(void)
+bool UsbCam::start_capturing(void)
 {
 
   if(is_capturing_) return true;
