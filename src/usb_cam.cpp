@@ -1115,12 +1115,10 @@ void UsbCam::shutdown(void)
   image_ = NULL;
 }
 
-int UsbCam::grab_image(sensor_msgs::Image* msg)
+bool UsbCam::grab_image(sensor_msgs::Image* msg)
 {
   // grab the image
-  int result = grab_image();
-  printf("grab image result: ");
-  printf(result);
+  bool result = grab_image();
   // stamp the image
   msg->header.stamp = ros::Time::now();
   // fill the info
@@ -1137,11 +1135,13 @@ int UsbCam::grab_image(sensor_msgs::Image* msg)
   return result;
 }
 
-int UsbCam::grab_image()
+bool UsbCam::grab_image()
 {
   fd_set fds;
   struct timeval tv;
   int r;
+
+  bool result = true;
 
   FD_ZERO(&fds);
   FD_SET(fd_, &fds);
@@ -1154,13 +1154,14 @@ int UsbCam::grab_image()
 
   if (-1 == r)
   {
-    if (EINTR == errno)
-      printf("errno");
-      return 0;
+    if (EINTR == errno){
+      result = false;
+      return result;
+    } 
 
     errno_exit("select");
-    printf("select");
-    return 0;
+    result = false;
+    return result;
   }
 
   if (0 == r)
@@ -1170,9 +1171,13 @@ int UsbCam::grab_image()
   }
 
   read_frame();
+
+  // if (read_frame() == 0) {
+  //   result = false;
+  // }
+
   image_->is_new = 1;
-  printf("done");
-  return 0;
+  return result;
 }
 
 // enables/disables auto focus
