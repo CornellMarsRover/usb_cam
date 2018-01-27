@@ -1038,6 +1038,7 @@ bool UsbCam::open_device(void)
     ROS_ERROR_STREAM("Cannot open '" << camera_dev_ << "': " << errno << ", " << strerror(errno));
     return false;
   }
+  return true;
 }
 
 bool UsbCam::start(const std::string& dev, io_method io_method,
@@ -1087,7 +1088,7 @@ bool UsbCam::start(const std::string& dev, io_method io_method,
     return false;
   }
   if(!start_capturing()){
-    ROS_ERROR("Cannot capture");
+    ROS_ERROR("Cannot cap");
     return false;
   }
 
