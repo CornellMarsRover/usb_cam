@@ -1170,11 +1170,11 @@ bool UsbCam::grab_image()
     exit(EXIT_FAILURE);
   }
 
-  read_frame();
+  // read_frame();
 
-  // if (read_frame() == 0) {
-  //   result = false;
-  // }
+  if (read_frame() == 0) {
+    result = false;
+  }
 
   image_->is_new = 1;
   return result;
