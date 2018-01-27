@@ -622,10 +622,10 @@ void UsbCam::stop_capturing(void)
   }
 }
 
-void UsbCam::start_capturing(void)
+bool UsbCam::start_capturing(void)
 {
 
-  if(is_capturing_) return;
+  if(is_capturing_) return true;
 
   unsigned int i;
   enum v4l2_buf_type type;
@@ -649,7 +649,7 @@ void UsbCam::start_capturing(void)
 
         if (-1 == xioctl(fd_, VIDIOC_QBUF, &buf)){
           errno_exit("VIDIOC_QBUF");
-          return;
+          return false;
         }
       }
 
@@ -657,7 +657,7 @@ void UsbCam::start_capturing(void)
 
       if (-1 == xioctl(fd_, VIDIOC_STREAMON, &type)){
         errno_exit("VIDIOC_STREAMON");
-        return;
+        return false;
       }
 
       break;
@@ -677,7 +677,7 @@ void UsbCam::start_capturing(void)
 
         if (-1 == xioctl(fd_, VIDIOC_QBUF, &buf)){
           errno_exit("VIDIOC_QBUF");
-          return;
+          return false;
         }
           
       }
@@ -686,12 +686,13 @@ void UsbCam::start_capturing(void)
 
       if (-1 == xioctl(fd_, VIDIOC_STREAMON, &type)){
         errno_exit("VIDIOC_STREAMON");
-        return;
+        return false;
       }
 
       break;
   }
   is_capturing_ = true;
+  return true;
 }
 
 void UsbCam::uninit_device(void)
@@ -859,7 +860,7 @@ void UsbCam::init_userp(unsigned int buffer_size)
   }
 }
 
-void UsbCam::init_device(int image_width, int image_height, int framerate)
+bool UsbCam::init_device(int image_width, int image_height, int framerate)
 {
   struct v4l2_capability cap;
   struct v4l2_cropcap cropcap;
@@ -872,19 +873,19 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
     if (EINVAL == errno)
     {
       ROS_ERROR_STREAM(camera_dev_ << " is no V4L2 device");
-      exit(EXIT_FAILURE);
+      return false;
     }
     else
     {
       errno_exit("VIDIOC_QUERYCAP");
-      return;
+      return false;
     }
   }
 
   if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
   {
     ROS_ERROR_STREAM(camera_dev_ << " is no video capture device");
-    exit(EXIT_FAILURE);
+    return false;
   }
 
   switch (io_)
@@ -893,7 +894,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
       if (!(cap.capabilities & V4L2_CAP_READWRITE))
       {
         ROS_ERROR_STREAM(camera_dev_ << " does not support read i/o");
-        exit(EXIT_FAILURE);
+        return false;
       }
 
       break;
@@ -903,7 +904,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
       if (!(cap.capabilities & V4L2_CAP_STREAMING))
       {
         ROS_ERROR_STREAM(camera_dev_ << " does not support streaming i/o");
-        exit(EXIT_FAILURE);
+        return false;
       }
 
       break;
@@ -975,7 +976,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   stream_params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if (xioctl(fd_, VIDIOC_G_PARM, &stream_params) < 0){
     errno_exit("Couldn't query v4l fps!");
-    return;
+    return false;
   }
 
   ROS_DEBUG("Capability flag: 0x%x", stream_params.parm.capture.capability);
@@ -1001,6 +1002,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
       init_userp(fmt.fmt.pix.sizeimage);
       break;
   }
+  return true;
 }
 
 void UsbCam::close_device(void)
@@ -1013,20 +1015,20 @@ void UsbCam::close_device(void)
   fd_ = -1;
 }
 
-void UsbCam::open_device(void)
+bool UsbCam::open_device(void)
 {
   struct stat st;
 
   if (-1 == stat(camera_dev_.c_str(), &st))
   {
     ROS_ERROR_STREAM("Cannot identify '" << camera_dev_ << "': " << errno << ", " << strerror(errno));
-    exit(EXIT_FAILURE);
+    return false;
   }
 
   if (!S_ISCHR(st.st_mode))
   {
     ROS_ERROR_STREAM(camera_dev_ << " is no device");
-    exit(EXIT_FAILURE);
+    return false;
   }
 
   fd_ = open(camera_dev_.c_str(), O_RDWR /* required */| O_NONBLOCK, 0);
@@ -1034,11 +1036,11 @@ void UsbCam::open_device(void)
   if (-1 == fd_)
   {
     ROS_ERROR_STREAM("Cannot open '" << camera_dev_ << "': " << errno << ", " << strerror(errno));
-    exit(EXIT_FAILURE);
+    return false;
   }
 }
 
-void UsbCam::start(const std::string& dev, io_method io_method,
+bool UsbCam::start(const std::string& dev, io_method io_method,
 		   pixel_format pixel_format, int image_width, int image_height,
 		   int framerate)
 {
@@ -1073,12 +1075,18 @@ void UsbCam::start(const std::string& dev, io_method io_method,
   else
   {
     ROS_ERROR("Unknown pixel format.");
-    exit(EXIT_FAILURE);
+    return false;
   }
 
-  open_device();
-  init_device(image_width, image_height, framerate);
-  start_capturing();
+  if(!open_device()){
+    return false;
+  }
+  if(!init_device(image_width, image_height, framerate)){
+    return false;
+  }
+  if(!start_capturing()){
+    return false;
+  }
 
   image_ = (camera_image_t *)calloc(1, sizeof(camera_image_t));
 
@@ -1090,6 +1098,7 @@ void UsbCam::start(const std::string& dev, io_method io_method,
   image_->is_new = 0;
   image_->image = (char *)calloc(image_->image_size, sizeof(char));
   memset(image_->image, 0, image_->image_size * sizeof(char));
+  return true;
 }
 
 void UsbCam::shutdown(void)

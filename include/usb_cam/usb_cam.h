@@ -75,7 +75,7 @@ class UsbCam {
   ~UsbCam();
 
   // start camera
-  void start(const std::string& dev, io_method io, pixel_format pf,
+  bool start(const std::string& dev, io_method io, pixel_format pf,
 		    int image_width, int image_height, int framerate);
   // shutdown camera
   void shutdown(void);
@@ -94,7 +94,7 @@ class UsbCam {
   static pixel_format pixel_format_from_string(const std::string& str);
 
   void stop_capturing(void);
-  void start_capturing(void);
+  bool start_capturing(void);
   bool is_capturing();
 
  private:
@@ -123,9 +123,9 @@ class UsbCam {
   void init_read(unsigned int buffer_size);
   void init_mmap(void);
   void init_userp(unsigned int buffer_size);
-  void init_device(int image_width, int image_height, int framerate);
+  bool init_device(int image_width, int image_height, int framerate);
   void close_device(void);
-  void open_device(void);
+  bool open_device(void);
   bool grab_image();
   bool is_capturing_;
 
