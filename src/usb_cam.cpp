@@ -955,7 +955,7 @@ bool UsbCam::init_device(int image_width, int image_height, int framerate)
 
   if (-1 == xioctl(fd_, VIDIOC_S_FMT, &fmt)){
     errno_exit("VIDIOC_S_FMT");
-    return;
+    return false;
   }
 
   /* Note VIDIOC_S_FMT may change width and height. */
