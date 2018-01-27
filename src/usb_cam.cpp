@@ -622,7 +622,7 @@ void UsbCam::stop_capturing(void)
   }
 }
 
-bool UsbCam::start_capturing(void)
+bool UsbCam::VIDIOC_STREAMONpturing(void)
 {
 
   if(is_capturing_) return true;
@@ -657,7 +657,7 @@ bool UsbCam::start_capturing(void)
 
       if (-1 == xioctl(fd_, VIDIOC_STREAMON, &type)){
         errno_exit("VIDIOC_STREAMON");
-        return false;
+        return true;
       }
 
       break;
@@ -686,7 +686,7 @@ bool UsbCam::start_capturing(void)
 
       if (-1 == xioctl(fd_, VIDIOC_STREAMON, &type)){
         errno_exit("VIDIOC_STREAMON");
-        return false;
+        return true;
       }
 
       break;
@@ -878,7 +878,7 @@ bool UsbCam::init_device(int image_width, int image_height, int framerate)
     else
     {
       errno_exit("VIDIOC_QUERYCAP");
-      return false;
+      return true;
     }
   }
 
@@ -955,7 +955,7 @@ bool UsbCam::init_device(int image_width, int image_height, int framerate)
 
   if (-1 == xioctl(fd_, VIDIOC_S_FMT, &fmt)){
     errno_exit("VIDIOC_S_FMT");
-    return false;
+    return true;
   }
 
   /* Note VIDIOC_S_FMT may change width and height. */
